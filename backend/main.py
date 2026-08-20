@@ -28,6 +28,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.api_route("/", methods=["GET", "HEAD"])
+def root():
+    return {"status": "ok"}
+
 # ----------------------------------------
 # Database setup
 # ----------------------------------------
