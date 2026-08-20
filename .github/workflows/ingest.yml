@@ -11,3 +11,5 @@ jobs:
     steps:
       - name: Trigger ingestion
         run: curl -X POST https://nfl-fantasy-backend-2-h5j8.onrender.com/ingest
+
+# force github to index this workflow
