@@ -5,6 +5,7 @@ from typing import Optional
 from pydantic import BaseModel
 from datetime import datetime
 import feedparser
+from fastapi.responses import PlainTextResponse
 
 from .db import Base, engine, SessionLocal
 from .models import NewsItem
@@ -31,6 +32,10 @@ app.add_middleware(
 @app.api_route("/", methods=["GET", "HEAD"])
 def root():
     return {"status": "ok"}
+
+@app.get("/robots.txt")
+def robots():
+    return PlainTextResponse("User-agent: *\nDisallow: /")
 
 # ----------------------------------------
 # Database setup
@@ -71,9 +76,6 @@ class NewsItemResponse(BaseModel):
 # ----------------------------------------
 
 
-@app.get("/")
-def root():
-    return {"status": "ok"}
 
 
 # Manual ingestion trigger
