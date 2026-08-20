@@ -35,7 +35,10 @@ def root():
 # ----------------------------------------
 # Database setup
 # ----------------------------------------
-Base.metadata.create_all(bind=engine)
+
+@app.on_event("startup")
+def startup_event():
+    Base.metadata.create_all(bind=engine)
 
 def get_db():
     db = SessionLocal()
@@ -60,7 +63,7 @@ class NewsItemResponse(BaseModel):
     created_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 # ----------------------------------------
