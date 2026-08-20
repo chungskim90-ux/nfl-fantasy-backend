@@ -79,8 +79,8 @@ function App() {
   useEffect(() => {
     const endpoint =
       team === "ALL"
-        ? `http://localhost:8000/items?min_relevance=${breakingOnly ? 80 : 0}`
-        : `http://localhost:8000/items?team=${team}&min_relevance=${breakingOnly ? 80 : 0}`;
+        ? `https://nfl-fantasy-backend-2-h5j8.onrender.com/items?min_relevance=${breakingOnly ? 80 : 0}`
+        : `https://nfl-fantasy-backend-2-h5j8.onrender.com/items?team=${team}&min_relevance=${breakingOnly ? 80 : 0}`;
 
     fetch(endpoint)
       .then(res => res.json())

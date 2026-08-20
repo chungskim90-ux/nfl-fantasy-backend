@@ -63,6 +63,12 @@ class NewsItemResponse(BaseModel):
 # ROUTES
 # ----------------------------------------
 
+
+@app.get("/")
+def root():
+    return {"status": "ok"}
+
+
 # Manual ingestion trigger
 @app.post("/ingest")
 def run_ingestion():
