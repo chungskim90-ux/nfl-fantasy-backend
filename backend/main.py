@@ -9,8 +9,7 @@ from fastapi.responses import PlainTextResponse
 
 from .db import Base, engine, SessionLocal
 from .models import NewsItem
-from .ingest import ingest_news
-from .ingest import RSS_FEEDS   # IMPORTANT: import your merged feed list
+
 
 
 # ----------------------------------------
