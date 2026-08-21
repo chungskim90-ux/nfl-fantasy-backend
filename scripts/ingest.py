@@ -6,6 +6,12 @@ from sqlalchemy.orm import sessionmaker
 
 from backend.models import NewsItem
 from backend.feeds import RSS_FEEDS
+from backend.ingest import (
+    extract_team,
+    extract_player_name,
+    extract_category,
+    extract_timestamp,
+)
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
@@ -21,13 +27,13 @@ def ingest():
         for entry in feed.entries:
             item = NewsItem(
                 text=entry.get("title", ""),
-                team=None,
-                player_name=None,
-                category=None,
-                source="RSS",
+                team=extract_team(entry),
+                player_name=extract_player_name(entry),
+                category=extract_category(entry),
+                source=entry.get("source", "RSS"),
                 url=entry.get("link", ""),
                 fantasy_relevance=50,
-                created_at=datetime.utcnow(),
+                created_at=extract_timestamp(entry),
             )
             db.add(item)
 
@@ -36,4 +42,3 @@ def ingest():
 
 if __name__ == "__main__":
     ingest()
-
