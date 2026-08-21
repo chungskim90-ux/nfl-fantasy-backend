@@ -1,4 +1,4 @@
-name: Ingest News
+name: Ingest-News
 
 on:
   schedule:
