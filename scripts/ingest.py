@@ -3,13 +3,14 @@ import feedparser
 from datetime import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from models import NewsItem
-from ingest import RSS_FEEDS
 
+from backend.models import NewsItem
+from backend.ingest import RSS_FEEDS
 
-engine = create_engine(os.getenv("DATABASE_URL"))
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine)
-
 
 def ingest():
     db = SessionLocal()
@@ -23,7 +24,7 @@ def ingest():
                 team=None,
                 player_name=None,
                 category=None,
-                source=entry.get("source", "unknown"),
+                source="RSS",
                 url=entry.get("link", ""),
                 fantasy_relevance=50,
                 created_at=datetime.utcnow(),
@@ -35,3 +36,4 @@ def ingest():
 
 if __name__ == "__main__":
     ingest()
+
