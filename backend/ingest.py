@@ -4,6 +4,8 @@ from datetime import datetime
 from .db import SessionLocal
 from .models import NewsItem
 from zoneinfo import ZoneInfo
+from backend.models import NewsItem
+from backend.ingest import RSS_FEEDS
 
 
 TEAM_MAP = {
