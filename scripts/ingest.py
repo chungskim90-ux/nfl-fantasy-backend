@@ -3,8 +3,9 @@ import feedparser
 from datetime import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from backend.models import NewsItem
-from backend.ingest import RSS_FEEDS
+from models import NewsItem
+from ingest import RSS_FEEDS
+
 
 engine = create_engine(os.getenv("DATABASE_URL"))
 SessionLocal = sessionmaker(bind=engine)
