@@ -5,7 +5,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from backend.models import NewsItem
-from backend.ingest import RSS_FEEDS
+from backend.feeds import RSS_FEEDS
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
