@@ -6,9 +6,9 @@ from sqlalchemy.orm import sessionmaker
 from models import NewsItem  # adjust import path if needed
 from ingest import RSS_FEEDS  # your feed list
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = os.getenv("postgresql://postgres:vNQuwuDYchANYSEFEiieXASfsvyLbZrl@postgres.railway.internal:5432/railway")
 
-engine = create_engine(DATABASE_URL)
+engine = create_engine(postgresql://postgres:vNQuwuDYchANYSEFEiieXASfsvyLbZrl@postgres.railway.internal:5432/railway)
 SessionLocal = sessionmaker(bind=engine)
 
 def ingest():
