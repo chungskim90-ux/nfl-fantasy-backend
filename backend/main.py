@@ -78,12 +78,6 @@ class NewsItemResponse(BaseModel):
 
 
 
-# Manual ingestion trigger
-@app.post("/ingest")
-def run_ingestion():
-    ingest_news()
-    return {"status": "ok"}
-
 
 # Feed health checker
 @app.get("/debug-feeds")

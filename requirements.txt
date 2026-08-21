@@ -4,3 +4,5 @@ sqlalchemy
 feedparser
 pydantic
 python-dotenv
+psycopg2-binary
+

@@ -9,6 +9,18 @@ jobs:
   ingest:
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger ingestion
-        run: curl -X POST https://nfl-fantasy-backend-2-h5j8.onrender.com/ingest
-#harmless comment
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run ingestion
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: python scripts/ingest.py
