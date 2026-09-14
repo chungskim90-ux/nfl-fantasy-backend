@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import Optional
@@ -6,11 +6,10 @@ from pydantic import BaseModel
 from datetime import datetime
 import feedparser
 from fastapi.responses import PlainTextResponse
+import httpx
 
 from .db import Base, engine, SessionLocal
 from .models import NewsItem
-
-
 
 # ----------------------------------------
 # Initialize FastAPI FIRST
@@ -51,7 +50,6 @@ def get_db():
     finally:
         db.close()
 
-
 # ----------------------------------------
 # Models
 # ----------------------------------------
@@ -69,14 +67,42 @@ class NewsItemResponse(BaseModel):
     class Config:
         from_attributes = True
 
+# ----------------------------------------
+# Sleeper global stats helper
+# ----------------------------------------
+SLEEPER_BASE = "https://api.sleeper.app/v1"
+
+async def fetch_json(url: str):
+    async with httpx.AsyncClient() as client:
+        r = await client.get(url)
+        if r.status_code != 200:
+            raise HTTPException(status_code=502, detail=f"Failed to fetch: {url}")
+        return r.json()
 
 # ----------------------------------------
 # ROUTES
 # ----------------------------------------
 
+# Global weekly top performers (no league required)
+@app.get("/top-performers")
+async def top_performers(week: int, limit: int = 25):
+    stats_url = f"{SLEEPER_BASE}/stats/nfl/2024/{week}"
+    stats = await fetch_json(stats_url)
 
+    players = []
+    for p in stats:
+        points = p.get("fantasy_points_ppr", 0)
+        if points and points > 0:
+            players.append({
+                "player_id": p.get("player_id"),
+                "name": p.get("player", "Unknown"),
+                "team": p.get("team"),
+                "position": p.get("position"),
+                "points": points,
+            })
 
-
+    players_sorted = sorted(players, key=lambda x: x["points"], reverse=True)
+    return players_sorted[:limit]
 
 # Feed health checker
 @app.get("/debug-feeds")
@@ -93,7 +119,6 @@ def debug_feeds():
         })
 
     return results
-
 
 # Per-team filtering
 @app.get("/team/{team_abbr}")
@@ -121,7 +146,6 @@ def get_team_news(team_abbr: str):
         }
         for i in items
     ]
-
 
 # Main items endpoint
 @app.get("/items")
