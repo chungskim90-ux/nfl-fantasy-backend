@@ -59,7 +59,7 @@ def seed_real_data():
     import feedparser
     from datetime import datetime
     from .models import NewsItem
-    from .feed import RSS_FEEDS   # <-- your feed.py file
+    from backend.feed import RSS_FEEDS   # <-- your feed.py file
 
     db = SessionLocal()
 
