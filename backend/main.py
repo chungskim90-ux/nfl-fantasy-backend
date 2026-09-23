@@ -1,18 +1,16 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
-from typing import Optional
-from pydantic import BaseModel
-from datetime import datetime
-import feedparser
 from fastapi.responses import PlainTextResponse
+from sqlalchemy.orm import Session
+from datetime import datetime
 import httpx
 
-from .db import Base, engine, SessionLocal
-from .models import NewsItem
+from .db import SessionLocal
+from .models import Base, engine, NewsItem
+from .ingest import ingest_news   # <-- your full ingestion pipeline
 
 # ----------------------------------------
-# Initialize FastAPI FIRST
+# Initialize FastAPI
 # ----------------------------------------
 app = FastAPI()
 
@@ -21,12 +19,15 @@ app = FastAPI()
 # ----------------------------------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "*"],
+    allow_origins=["*"],   # Netlify, Render, localhost — everything works
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# ----------------------------------------
+# Root + robots.txt
+# ----------------------------------------
 @app.api_route("/", methods=["GET", "HEAD"])
 def root():
     return {"status": "ok"}
@@ -36,21 +37,36 @@ def robots():
     return PlainTextResponse("User-agent: *\nDisallow: /")
 
 # ----------------------------------------
-# Database setup
+# Startup: create DB + ingest if empty
 # ----------------------------------------
-
 @app.on_event("startup")
 def startup_event():
     Base.metadata.create_all(bind=engine)
 
-    # Seed real RSS data if DB is empty
-    from .db import seed_real_data
-    seed_real_data()
+    db = SessionLocal()
+    has_data = db.query(NewsItem).count() > 0
+    db.close()
+
+    if not has_data:
+        ingest_news()   # <-- your full ingestion logic runs here
 
 
 # ----------------------------------------
-# Models
+# DB dependency
 # ----------------------------------------
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+# ----------------------------------------
+# Response Model
+# ----------------------------------------
+from pydantic import BaseModel
+
 class NewsItemResponse(BaseModel):
     id: int
     text: str
@@ -65,8 +81,47 @@ class NewsItemResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
 # ----------------------------------------
-# Sleeper global stats helper
+# ROUTES
+# ----------------------------------------
+
+# Main feed
+@app.get("/items", response_model=list[NewsItemResponse])
+def get_items(
+    team: str | None = None,
+    min_relevance: int = 0,
+    db: Session = Depends(get_db),
+):
+    query = db.query(NewsItem).filter(NewsItem.fantasy_relevance >= min_relevance)
+
+    if team:
+        query = query.filter(NewsItem.team == team.upper())
+
+    return query.order_by(NewsItem.created_at.desc()).all()
+
+
+# Per-team feed
+@app.get("/team/{team_abbr}", response_model=list[NewsItemResponse])
+def get_team_news(team_abbr: str, db: Session = Depends(get_db)):
+    items = (
+        db.query(NewsItem)
+        .filter(NewsItem.team == team_abbr.upper())
+        .order_by(NewsItem.created_at.desc())
+        .all()
+    )
+    return items
+
+
+# Manual refresh endpoint (optional)
+@app.post("/refresh-news")
+def refresh_news():
+    ingest_news()
+    return {"status": "refreshed"}
+
+
+# ----------------------------------------
+# Sleeper API: Top Performers
 # ----------------------------------------
 SLEEPER_BASE = "https://api.sleeper.app/v1"
 
@@ -77,11 +132,6 @@ async def fetch_json(url: str):
             raise HTTPException(status_code=502, detail=f"Failed to fetch: {url}")
         return r.json()
 
-# ----------------------------------------
-# ROUTES
-# ----------------------------------------
-
-# Global weekly top performers (no league required)
 @app.get("/top-performers")
 async def top_performers(week: int, limit: int = 25):
     stats_url = f"{SLEEPER_BASE}/stats/nfl/2024/{week}"
@@ -101,12 +151,3 @@ async def top_performers(week: int, limit: int = 25):
 
     players_sorted = sorted(players, key=lambda x: x["points"], reverse=True)
     return players_sorted[:limit]
-
-# Feed health checker
-@app.get("/debug-feeds")
-def debug_feeds():
-    results = []
-
-    for url in RSS_FEEDS:
-        feed = feedparser.parse(url)
-        results
