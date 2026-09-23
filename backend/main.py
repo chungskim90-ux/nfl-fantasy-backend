@@ -5,9 +5,10 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 import httpx
 
-from .db import SessionLocal
-from .models import Base, NewsItem
-from .db import engine   # <-- your full ingestion pipeline
+from backend.db import SessionLocal, engine
+from backend.models import Base, NewsItem
+from backend.ingest import ingest_news
+
 
 # ----------------------------------------
 # Initialize FastAPI

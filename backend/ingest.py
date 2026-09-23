@@ -3,9 +3,10 @@ import re
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-from .db import SessionLocal
-from .models import NewsItem
-from .feeds import RSS_FEEDS  # <-- use relative import, single source of truth
+from backend.db import SessionLocal
+from backend.models import NewsItem
+from backend.feeds import RSS_FEEDS
+
 
 
 TEAM_MAP = {
