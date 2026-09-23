@@ -59,24 +59,27 @@ def seed_real_data():
     import feedparser
     from datetime import datetime
     from .models import NewsItem
-    from backend.feeds import RSS_FEEDS   # <-- your feed.py file
+    from .feeds import RSS_FEEDS   # <-- FIXED
 
     db = SessionLocal()
 
-    # Only seed if DB is empty
     if db.query(NewsItem).count() == 0:
         for url in RSS_FEEDS:
             feed = feedparser.parse(url)
 
+            # Skip feeds that fail
+            if not hasattr(feed, "entries"):
+                continue
+
             for entry in feed.entries:
                 item = NewsItem(
                     text=entry.get("title", "No title"),
-                    team=None,  # You can enhance this later
+                    team=None,
                     player_name=None,
                     category=None,
-                    source=feed.feed.get("title", "Unknown"),
+                    source=feed.feed.get("title", "Unknown") if hasattr(feed, "feed") else "Unknown",
                     url=entry.get("link"),
-                    fantasy_relevance=50,  # Default relevance
+                    fantasy_relevance=50,
                     created_at=datetime.utcnow()
                 )
                 db.add(item)
@@ -84,4 +87,5 @@ def seed_real_data():
         db.commit()
 
     db.close()
+
 
