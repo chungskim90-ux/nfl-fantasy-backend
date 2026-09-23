@@ -6,8 +6,8 @@ from datetime import datetime
 import httpx
 
 from .db import SessionLocal
-from .models import Base, engine, NewsItem
-from .ingest import ingest_news   # <-- your full ingestion pipeline
+from .models import Base, NewsItem
+from .db import engine   # <-- your full ingestion pipeline
 
 # ----------------------------------------
 # Initialize FastAPI
