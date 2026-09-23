@@ -8,7 +8,10 @@ export default function TopPerformers() {
   const fetchData = async () => {
     setLoading(true);
 
-    const res = await fetch(`/api/top-performers?week=${week}`);
+    const res = await fetch(
+  `https://nfl-fantasy-backend-2-h5j8.onrender.com/top-performers?week=${week}`
+);
+
     const data = await res.json();
 
     setPlayers(data);
