@@ -54,3 +54,34 @@ def seed_mock_data():
         db.commit()
 
     db.close()
+
+def seed_real_data():
+    import feedparser
+    from datetime import datetime
+    from .models import NewsItem
+    from .feed import RSS_FEEDS   # <-- your feed.py file
+
+    db = SessionLocal()
+
+    # Only seed if DB is empty
+    if db.query(NewsItem).count() == 0:
+        for url in RSS_FEEDS:
+            feed = feedparser.parse(url)
+
+            for entry in feed.entries:
+                item = NewsItem(
+                    text=entry.get("title", "No title"),
+                    team=None,  # You can enhance this later
+                    player_name=None,
+                    category=None,
+                    source=feed.feed.get("title", "Unknown"),
+                    url=entry.get("link"),
+                    fantasy_relevance=50,  # Default relevance
+                    created_at=datetime.utcnow()
+                )
+                db.add(item)
+
+        db.commit()
+
+    db.close()
+

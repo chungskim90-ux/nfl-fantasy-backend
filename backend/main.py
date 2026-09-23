@@ -41,15 +41,12 @@ def robots():
 
 @app.on_event("startup")
 def startup_event():
-    # Creates SQLite tables automatically
     Base.metadata.create_all(bind=engine)
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+    # Seed real RSS data if DB is empty
+    from .db import seed_real_data
+    seed_real_data()
+
 
 # ----------------------------------------
 # Models
